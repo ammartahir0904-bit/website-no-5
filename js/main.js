@@ -62,7 +62,7 @@
     decodeWindow() {
       if (!this.live) return;
       const t = this.target, keep = new Set();
-      for (let i = Math.max(0, t - SPAN); i <= Math.min(this.n - 1, t + SPAN); i++) if (this.imgs[i]) keep.add(i);
+      for (let d = -SPAN; d <= SPAN; d++) { const i = this.loop ? (t + d + this.n) % this.n : t + d; if (this.imgs[i]) keep.add(i); }
       for (let i = t; i >= 0; i--) if (this.imgs[i]) { keep.add(i); break; }
       for (let i = t; i < this.n; i++) if (this.imgs[i]) { keep.add(i); break; }
       this.keep = keep;
@@ -83,8 +83,8 @@
       if (!v) { this.bmps.forEach((b, i) => { if (b && b.close) b.close(); this.bmps[i] = null; }); this.decoding.clear(); this.keep.clear(); }
       else this.decodeWindow();
     }
-    set(p) {
-      const r = Math.round(clamp(p) * (this.n - 1));
+    set(p) { this.go(Math.round(clamp(p) * (this.n - 1))); }
+    go(r) {
       if (r !== this.target) { this.target = r; this.decodeWindow(); }
       this.draw();
     }
@@ -229,9 +229,6 @@
     }
     galBar.style.transform = `scaleX(${p4})`;
 
-    // S2 video plays as it scrolls through the viewport
-    seqs.locCv.set((H - lr.top) / (H + lr.height));
-
     // S5
     seqs.lakeCv.set(p5);
     const i5 = Math.min(2, Math.floor(p5 * 3));
@@ -241,6 +238,20 @@
   addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
   addEventListener('resize', update);
   update();
+
+  // ---- Section 2: the portrait video is a looping clip, it plays by itself (not tied to scroll) while on screen
+  const LOC_FPS = 12, loc = seqs.locCv;
+  loc.loop = true;
+  let locRaf = 0;
+  const locTick = t => {
+    loc.go(Math.floor(t / 1000 * LOC_FPS) % loc.n);
+    locRaf = requestAnimationFrame(locTick);
+  };
+  if (still) loc.go(0);
+  else new IntersectionObserver(es => {
+    if (es[0].isIntersecting) locRaf = locRaf || requestAnimationFrame(locTick);
+    else { cancelAnimationFrame(locRaf); locRaf = 0; }
+  }).observe(loc.cv);
 
   // reveal on scroll
   const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0.15 });
