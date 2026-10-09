@@ -38,7 +38,6 @@
   class Seq {
     constructor(cv, name, n) {
       this.cv = cv; this.ctx = cv.getContext('2d'); this.n = n; this.host = cv.closest('section');
-      this.blend = cv.hasAttribute('data-blend'); this.span = Math.max(SPAN, Math.round(n / 16)); this.pos = 0;
       this.dir = `assets/frames/${name}/${small ? 'm' : 'd'}/`;
       this.imgs = new Array(n); this.bmps = new Array(n); this.decoding = new Set(); this.keep = new Set();
       this.queue = order(n); this.target = 0; this.drawn = -1; this.live = true;
@@ -63,7 +62,7 @@
     decodeWindow() {
       if (!this.live) return;
       const t = this.target, keep = new Set();
-      for (let i = Math.max(0, t - this.span); i <= Math.min(this.n - 1, t + this.span); i++) if (this.imgs[i]) keep.add(i);
+      for (let i = Math.max(0, t - SPAN); i <= Math.min(this.n - 1, t + SPAN); i++) if (this.imgs[i]) keep.add(i);
       for (let i = t; i >= 0; i--) if (this.imgs[i]) { keep.add(i); break; }
       for (let i = t; i < this.n; i++) if (this.imgs[i]) { keep.add(i); break; }
       this.keep = keep;
@@ -85,8 +84,7 @@
       else this.decodeWindow();
     }
     set(p) {
-      this.pos = clamp(p) * (this.n - 1);
-      const r = Math.round(this.pos);
+      const r = Math.round(clamp(p) * (this.n - 1));
       if (r !== this.target) { this.target = r; this.decodeWindow(); }
       this.draw();
     }
@@ -97,26 +95,14 @@
       }
       return -1;
     }
-    // draw the frame under the scroll position (or the closest one already decoded);
-    // blend sequences also dissolve into the next frame by the fractional part, so slow scrolling stays continuous
+    // draw the frame under the scroll position (or the closest one already decoded)
     draw() {
       if (!this.live) return;
-      if (this.blend) {
-        const lo = Math.floor(this.pos), hi = Math.min(this.n - 1, lo + 1), a = Math.round((this.pos - lo) * 12) / 12;
-        if (this.bmps[lo] && this.bmps[hi]) {
-          if (lo + a === this.drawn) return;
-          this.paint(this.bmps[lo], 1); if (a > 0) this.paint(this.bmps[hi], a);
-          this.drawn = lo + a; return;
-        }
-      }
       const f = this.near(this.target);
       if (f < 0 || f === this.drawn) return;
-      this.paint(this.bmps[f], 1); this.drawn = f;
-    }
-    paint(im, alpha) {
-      const cw = this.cv.width, ch = this.cv.height, iw = im.width || im.naturalWidth, ih = im.height || im.naturalHeight;
+      const im = this.bmps[f], cw = this.cv.width, ch = this.cv.height, iw = im.width || im.naturalWidth, ih = im.height || im.naturalHeight;
       const k = Math.max(cw / iw, ch / ih), w = iw * k, h = ih * k;
-      this.ctx.globalAlpha = alpha; this.ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h); this.ctx.globalAlpha = 1;
+      this.ctx.drawImage(im, (cw - w) / 2, (ch - h) / 2, w, h); this.drawn = f;
     }
   }
   const seqs = {}, seqList = $$('canvas[data-seq]').map(cv => (seqs[cv.id] = new Seq(cv, cv.dataset.seq, +cv.dataset.n)));
@@ -138,7 +124,7 @@
   const s1Beats = $$('.beat', s1);
 
   // ---- Section 3: crossfade rooms
-  const s3 = $('#s3'), room4 = $('#room4'), caps = $$('.cap', s3), dots = $$('#dots3 i');
+  const s3 = $('#s3'), layers = $$('.layer', s3), caps = $$('.cap', s3), dots = $$('#dots3 i');
 
   // ---- Section 4: gallery
   const captions = [
@@ -175,13 +161,14 @@
   const s5 = $('#s5'), s5Beats = $$('.beat', s5);
 
   const navEl = $('#nav'), galNow = $('#galNow'), galBar = $('#galBar'), figs = $$('figure', track);
-  const last = { nav: null, i1: -2, i3: -2, c3: -2, rv: -1, gc: -1, i5: -2 };
+  const last = { nav: null, i1: -2, i3: -2, gc: -1, i5: -2, o3: [], top3: -1 };
   const setOn = (list, idx) => list.forEach((el, i) => el.classList.toggle('on', i === idx));
   let galMax = 0;
   let figBox = [];
   const measure = () => { galMax = track.scrollWidth - innerWidth; figBox = figs.map(f => [f.offsetLeft, f.offsetWidth]); };
   const still = matchMedia('(prefers-reduced-motion:reduce)').matches;
   measure(); addEventListener('resize', measure);
+  const F3 = 0.06; // share of section 3 spent crossfading into the next room
   let ticking = false;
   const update = () => {
     ticking = false;
@@ -199,7 +186,6 @@
 
     // only keep decoded frames for sections near the screen
     seqs.heroCv.setLive(near(r1));
-    seqs.tourCv.setLive(near(r3));
     seqs.lakeCv.setLive(near(r5));
 
     // S1
@@ -210,16 +196,20 @@
       last.i1 = i1; heroTitle.classList.toggle('gone', started); cue.style.opacity = started ? 0 : 1; setOn(s1Beats, i1);
     }
 
-    // S3: one clip, scrubbed in two legs (kitchen -> stove room -> seating area). The page holds still between legs so each
-    // caption sits on a steady frame; captions only show while still (one at a time), then the last photo rises over the clip.
-    const seg = (a, b) => clamp((p3 - a) / (b - a)), BND = 120 / (seqs.tourCv.n - 1);
-    seqs.tourCv.set(BND * seg(0.09, 0.33) + (1 - BND) * seg(0.47, 0.71));
-    const c3 = p3 < 0.075 ? 0 : p3 >= 0.35 && p3 < 0.45 ? 1 : p3 >= 0.73 && p3 < 0.78 ? 2 : p3 >= 0.91 ? 3 : -1;
-    if (c3 !== last.c3) { last.c3 = c3; setOn(caps, c3); }
-    const i3 = p3 < 0.21 ? 0 : p3 < 0.59 ? 1 : p3 < 0.84 ? 2 : 3;
-    if (i3 !== last.i3) { last.i3 = i3; setOn(dots, i3); }
-    const rv = Math.round(seg(0.8, 0.88) * 200) / 200;
-    if (rv !== last.rv) { last.rv = rv; room4.style.clipPath = `inset(${(1 - rv) * 100}% 0 0 0)`; }
+    // S3: each room fades in over the end of the previous step, driven by the scroll itself
+    const n3 = near(r3);
+    seqs.room1.setLive(n3 && p3 < 0.25 + F3); seqs.room2.setLive(n3 && p3 > 0.25 - 2 * F3 && p3 < 0.5 + F3);
+    seqs.room1.set(p3 * 4); seqs.room2.set(p3 * 4 - 1);
+    // a layer fully covered by a later one is hidden, so the compositor only blends what's actually visible
+    let top = 0;
+    for (let k = 1; k < layers.length; k++) {
+      const o = Math.round(clamp((p3 - k / 4 + F3) / F3) * 100) / 100;
+      if (o !== last.o3[k]) { last.o3[k] = o; layers[k].style.opacity = o; }
+      if (o === 1) top = k;
+    }
+    if (top !== last.top3) { last.top3 = top; layers.forEach((l, k) => { l.style.visibility = k < top ? 'hidden' : ''; }); }
+    const i3 = Math.min(3, Math.floor((p3 + F3 / 2) * 4));
+    if (i3 !== last.i3) { last.i3 = i3; setOn(caps, i3); setOn(dots, i3); }
 
     // S4: the photo nearest the centre is the focus; photos on screen drift slightly inside their frames
     const x = galMax * p4, mid = innerWidth / 2;

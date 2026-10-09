@@ -32,7 +32,7 @@ a{color:inherit;text-decoration:none}
 canvas.layer{background:#111}
 picture{display:contents}
 .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.3),rgba(0,0,0,.05) 40%,rgba(0,0,0,.6));pointer-events:none}
-.shade.low{background:linear-gradient(180deg,rgba(0,0,0,.12),transparent 30%,transparent 55%,rgba(0,0,0,.4))}
+.shade.low{background:linear-gradient(180deg,rgba(0,0,0,.2),transparent 35%,rgba(0,0,0,.6))}
 
 /* section 1 */
 .hero-title{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -71,20 +71,13 @@ picture{display:contents}
 .stat span{display:block;margin-top:10px;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#6b5b4b}
 
 /* section 3 */
-.layer{opacity:0}
+.layer{opacity:0;will-change:opacity}
 .layer.on{opacity:1}
-#room4{will-change:clip-path}
-.caps{position:absolute;left:var(--pad);right:var(--pad);bottom:9vh;color:#fff}
-.cap{position:absolute;left:0;bottom:0;max-width:100%}
-.cap h2{font:500 clamp(2.2rem,6.2vw,5.4rem)/1.12 var(--serif);text-shadow:0 2px 24px rgba(0,0,0,.35)}
-.cap p{margin-top:4px;font:400 clamp(1.1rem,2vw,1.7rem) var(--serif);text-shadow:0 1px 14px rgba(0,0,0,.4)}
-/* captions never overlap: the old one leaves fast, the new one waits for it */
-.cap:not(.on){opacity:0;pointer-events:none;transition:opacity .2s}
-.cap.on{opacity:1;transition:opacity .4s .3s}
-.cap:not(.on) .ln>span,.cap:not(.on) p{transition:transform .2s,opacity .2s}
-.cap.on .ln>span{transition:transform .9s cubic-bezier(.2,.7,.2,1) .3s}
-.cap.on .ln:nth-child(2)>span{transition-delay:.42s}
-.cap.on p{transition:opacity .6s .6s}
+.caps{position:absolute;left:var(--pad);right:var(--pad);bottom:12vh;color:#fff}
+.cap{position:absolute;left:0;bottom:0;max-width:100%;opacity:0;transform:translateY(20px);transition:.7s}
+.cap.on{opacity:1;transform:none}
+.cap h2{font:500 clamp(2rem,5.4vw,4.4rem)/1.05 var(--serif);text-shadow:0 2px 24px rgba(0,0,0,.4)}
+.cap p{margin-top:12px;font:italic 400 1.2rem var(--serif)}
 .dots{position:absolute;right:var(--pad);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px}
 .dots i{width:7px;height:7px;border-radius:50%;border:1px solid #fff;transition:.3s}
 .dots i.on{background:#fff;height:26px;border-radius:6px}
