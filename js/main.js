@@ -152,6 +152,10 @@
     track.appendChild(f);
   });
   $('#galTotal').textContent = String(files.length).padStart(2, '0');
+  // fetch every gallery photo (and decode it off the main thread) before the visitor reaches the gallery
+  new IntersectionObserver((es, o) => { if (!es[0].isIntersecting) return; o.disconnect();
+    $$('img', track).forEach(im => { im.loading = 'eager'; im.decode().catch(() => {}); });
+  }, { rootMargin: '150% 0px' }).observe(gal);
 
   // ---- Section 5: scrubbed video
   const s5 = $('#s5'), s5Beats = $$('.beat', s5);
@@ -160,7 +164,9 @@
   const last = { nav: null, i1: -2, i3: -2, gc: -1, i5: -2, o3: [], top3: -1 };
   const setOn = (list, idx) => list.forEach((el, i) => el.classList.toggle('on', i === idx));
   let galMax = 0;
-  const measure = () => { galMax = track.scrollWidth - innerWidth; };
+  let figBox = [];
+  const measure = () => { galMax = track.scrollWidth - innerWidth; figBox = figs.map(f => [f.offsetLeft, f.offsetWidth]); };
+  const still = matchMedia('(prefers-reduced-motion:reduce)').matches;
   measure(); addEventListener('resize', measure);
   const F3 = 0.06; // share of section 3 spent crossfading into the next room
   let ticking = false;
@@ -206,12 +212,20 @@
     const i3 = Math.min(3, Math.floor((p3 + F3 / 2) * 4));
     if (i3 !== last.i3) { last.i3 = i3; setOn(caps, i3); setOn(dots, i3); }
 
-    // S4
-    track.style.transform = `translate(${-galMax * p4}px,-50%)`;
-    const gc = Math.min(files.length - 1, Math.floor(p4 * files.length));
+    // S4: the photo nearest the centre is the focus; photos on screen drift slightly inside their frames
+    const x = galMax * p4, mid = innerWidth / 2;
+    track.style.transform = `translate(${-x}px,-50%)`;
+    let gc = 0, bd = Infinity;
+    figBox.forEach(([l, w], i) => {
+      const c = l + w / 2 - x - mid;
+      if (Math.abs(c) < bd) { bd = Math.abs(c); gc = i; }
+      if (!still && l - x < innerWidth && l + w - x > 0) figs[i].firstChild.style.transform = `translate3d(${(-c / innerWidth * 6).toFixed(2)}%,0,0) scale(1.14)`;
+    });
     if (gc !== last.gc) {
       if (figs[last.gc]) figs[last.gc].classList.remove('focus');
-      figs[gc].classList.add('focus'); last.gc = gc; galNow.textContent = String(gc + 1).padStart(2, '0');
+      figs[gc].classList.add('focus'); galNow.textContent = String(gc + 1).padStart(2, '0');
+      if (!still && last.gc >= 0) galNow.animate([{ transform: `translateY(${gc > last.gc ? 100 : -100}%)` }, { transform: 'none' }], { duration: 550, easing: 'cubic-bezier(.2,.7,.2,1)' });
+      last.gc = gc;
     }
     galBar.style.transform = `scaleX(${p4})`;
 

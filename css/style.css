@@ -90,7 +90,7 @@ picture{display:contents}
 .gal-head small{font-size:.62rem;letter-spacing:.08em}
 .track{position:absolute;left:0;top:calc(50% + 40px);height:68vh;transform:translateY(-50%);display:flex;gap:18px;padding:0 var(--pad);will-change:transform}
 .track figure{position:relative;flex:none;height:100%;aspect-ratio:3/2;overflow:hidden;background:#d9cdb8}
-.track img{width:100%;height:100%;object-fit:cover}
+.track img{width:100%;height:100%;object-fit:cover;transform:scale(1.14)}
 .track figcaption{position:absolute;left:18px;bottom:16px;right:18px;color:#fff;text-shadow:0 1px 14px rgba(0,0,0,.6)}
 .track figcaption b{display:block;font:400 clamp(1.4rem,2.6vw,2.2rem) var(--serif)}
 .track figcaption span{font-size:.95rem}
@@ -145,6 +145,7 @@ fieldset label{text-transform:none;letter-spacing:0;font-size:.85rem;margin:6px 
   .beat,.cap{max-width:86vw}
 }
 @media (prefers-reduced-motion:reduce){
+  .track img{transform:none}
   .reveal{opacity:1;transform:none;transition:none}
   .beat,.cap{transition:none}
 }
@@ -161,8 +162,15 @@ fieldset label{text-transform:none;letter-spacing:0;font-size:.85rem;margin:6px 
 .card{border-top:2px solid var(--brown-lt)}
 .stat b{font-variant-numeric:tabular-nums}
 /* gallery focus */
-.track figure{}
-.track figure.focus{opacity:1;z-index:3}
+/* gallery: only the photo in focus shows its caption, number and shade */
+.track figcaption b,.track figcaption span,.track figure::after{display:block;opacity:0;transform:translateY(14px);transition:opacity .7s,transform .9s cubic-bezier(.2,.7,.2,1)}
+.track figure::before{opacity:0;transition:opacity .8s}
+.track figure.focus::before,.track figure.focus figcaption b,.track figure.focus figcaption span,.track figure.focus::after{opacity:1;transform:none}
+.track figure.focus figcaption span{transition-delay:.1s}
+.track figure.focus::after{transition-delay:.15s}
+.roll{display:inline-block;overflow:hidden;vertical-align:bottom}
+.roll>span{display:inline-block}
+.gal-count.reveal{transition-delay:.15s}
 .gal-bar{position:absolute;left:var(--pad);right:var(--pad);bottom:7vh;height:1px;background:rgba(138,106,74,.3)}
 .gal-bar i{display:block;height:100%;width:100%;background:var(--brown);transform:scaleX(0);transform-origin:left;will-change:transform}
 /* loader */
