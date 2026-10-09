@@ -29,7 +29,7 @@ a{color:inherit;text-decoration:none}
 .pin{position:relative;height:var(--vh-len)}
 .stick{position:sticky;top:0;height:100vh;overflow:hidden;background:#000}
 .bg,.layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-canvas.bg,canvas.layer{background:#111}
+canvas.layer{background:#111}
 picture{display:contents}
 .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.3),rgba(0,0,0,.05) 40%,rgba(0,0,0,.6));pointer-events:none}
 .shade.low{background:linear-gradient(180deg,rgba(0,0,0,.2),transparent 35%,rgba(0,0,0,.6))}
@@ -71,7 +71,7 @@ picture{display:contents}
 .stat span{display:block;margin-top:10px;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;color:#6b5b4b}
 
 /* section 3 */
-.layer{opacity:0;transition:opacity .6s ease;will-change:opacity}
+.layer{opacity:0;will-change:opacity}
 .layer.on{opacity:1}
 .caps{position:absolute;left:var(--pad);right:var(--pad);bottom:12vh;color:#fff}
 .cap{position:absolute;left:0;bottom:0;max-width:100%;opacity:0;transform:translateY(20px);transition:.7s}
@@ -146,7 +146,7 @@ fieldset label{text-transform:none;letter-spacing:0;font-size:.85rem;margin:6px 
 }
 @media (prefers-reduced-motion:reduce){
   .reveal{opacity:1;transform:none;transition:none}
-  .layer,.beat,.cap{transition:none}
+  .beat,.cap{transition:none}
 }
 
 /* line-by-line headline rise */
