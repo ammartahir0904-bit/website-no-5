@@ -253,6 +253,15 @@
   });
   $$('[data-tour]').forEach(a => a.addEventListener('click', () => setTimeout(() => $('input[name=name]').focus({ preventScroll: true }), 700)));
 
+  // the ticket stub mirrors the name and date as they are typed
+  const stubName = $('#stubName'), stubDate = $('#stubDate');
+  form.addEventListener('input', () => {
+    form.classList.remove('sent');
+    stubName.textContent = form.elements['name'].value.trim() || 'Your name';
+    const v = form.elements['date'].value;
+    stubDate.textContent = v ? new Date(v + 'T12:00').toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' }) : 'To be agreed';
+  });
+
   form.addEventListener('submit', e => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(form));
@@ -262,7 +271,7 @@
     // No backend yet: log the payload so it can be wired to an endpoint.
     console.log('Inquiry', { ...d, survey });
     status.textContent = `Thank you, ${d.name.split(' ')[0]} — the agent will be in touch shortly.`;
-    form.reset(); survey = null;
+    form.reset(); survey = null; form.classList.add('sent');
   });
 })();
 

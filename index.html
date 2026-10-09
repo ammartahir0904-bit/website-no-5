@@ -130,25 +130,43 @@
       </ul>
     </aside>
 
+    <!-- the tour request is a boat ticket: the stub fills in as you type, submitting stamps it -->
     <form class="form reveal" id="form" novalidate>
-      <h2>Let's Arrange Your Tour</h2>
-      <p class="lede">Tell us a little about yourself and any question you have about the property.</p>
-      <div class="row">
-        <label>Full name<input name="name" required autocomplete="name"></label>
-        <label>Email<input name="email" type="email" required autocomplete="email"></label>
+      <div class="ticket">
+        <div class="tk-head"><span>Boat Tour</span><span>Admit One</span></div>
+        <div class="tk-main">
+          <h2>Let's Arrange Your Tour</h2>
+          <p class="lede">Tell us a little about yourself and any question you have about the property.</p>
+          <div class="route" aria-hidden="true">
+            <div class="stop"><small>Depart</small><b>Raven Lake Landing</b></div>
+            <div class="water"><svg class="boat" viewBox="0 0 48 24"><path d="M3 13h42l-5 8H9z"/><path d="M25 13l3-6h7l2 6z"/></svg></div>
+            <div class="stop end"><small>Arrive</small><b>10835 Raven Lake</b></div>
+          </div>
+          <div class="row">
+            <label>Full name<input name="name" required autocomplete="name"></label>
+            <label>Email<input name="email" type="email" required autocomplete="email"></label>
+          </div>
+          <div class="row">
+            <label>Phone<input name="phone" type="tel" autocomplete="tel"></label>
+            <label>Preferred tour date<input name="date" type="date"></label>
+          </div>
+          <label>Your inquiry
+            <textarea name="msg" rows="4" placeholder="Boat access, seasons, taxes, what's included…"></textarea>
+          </label>
+          <div class="actions">
+            <button type="button" class="btn-line" id="surveyBtn">Take the Survey</button>
+            <button type="submit" class="btn-dark">Contact the Agent</button>
+          </div>
+          <p class="status" id="status" role="status"></p>
+        </div>
+        <aside class="tk-stub" aria-hidden="true">
+          <div><small>Passenger</small><b id="stubName">Your name</b></div>
+          <div><small>Tour date</small><b id="stubDate">To be agreed</b></div>
+          <div><small>Access</small><b>Boat only</b></div>
+          <i class="barcode"></i>
+        </aside>
+        <div class="stamp" aria-hidden="true">Booked</div>
       </div>
-      <div class="row">
-        <label>Phone<input name="phone" type="tel" autocomplete="tel"></label>
-        <label>Preferred tour date<input name="date" type="date"></label>
-      </div>
-      <label>Your inquiry
-        <textarea name="msg" rows="5" placeholder="Boat access, seasons, taxes, what's included…"></textarea>
-      </label>
-      <div class="actions">
-        <button type="button" class="btn-line" id="surveyBtn">Take the Survey</button>
-        <button type="submit" class="btn-dark">Contact the Agent</button>
-      </div>
-      <p class="status" id="status" role="status"></p>
     </form>
   </div>
   <footer>© 10835 Raven Lake · West Shore Township, Ontario</footer>
